@@ -19,6 +19,7 @@
   "author": "PushEax <pusheax.vk@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "flatpickr": "^4.6.13",
     "vite-plugin-full-reload": "^1.2.0",
     "vite-plugin-html-inject": "^1.1.2"
   }
