@@ -10,10 +10,9 @@ const refs = {
 };
 
 refs.btn.disabled = true;
-const timeData = {
-  selectedDate: null,
-  interval: null,
-};
+
+let userSelectedDate;
+let timerInterval;
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
@@ -35,42 +34,46 @@ function displayTimeLeft(deltaTime) {
   refs.seconds.textContent = timeToDispay(seconds);
 }
 
+function intervalClear() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function checkTimer() {
+  const date = userSelectedDate - new Date();
+  refs.btn.disabled = !(date > 0);
+  displayTimeLeft(!refs.btn.disabled ? date : 0);
+  return !refs.btn.disabled;
+}
+
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    timeData.selectedDate = selectedDates[0];
-    if (timeData.selectedDate > new Date()) {
-      refs.btn.disabled = false;
-      displayTimeLeft(timeData.selectedDate - new Date());
-    } else {
-      displayTimeLeft(0);
-    }
-    if (timeData.interval) {
-      clearInterval(timeData.interval);
-      timeData.interval = null;
-    }
+    userSelectedDate = selectedDates[0];
+    checkTimer();
+    intervalClear();
   },
 };
 
 flatpickr('input#datetime-picker', options);
 
 refs.btn.addEventListener('click', event => {
-  if (timeData.interval) {
-    clearInterval(timeData.interval);
-    timeData.interval = null;
-  }
-  displayTimeLeft(timeData.selectedDate - new Date());
+  intervalClear();
 
-  timeData.interval = setInterval(() => {
-    const currentDate = new Date();
-    const deltaTime = timeData.selectedDate - currentDate;
-    displayTimeLeft(deltaTime);
-    if (deltaTime < SECOND) {
-      clearInterval(timeData.interval);
-      displayTimeLeft(0);
-    }
-  }, 1000);
+  if (checkTimer()) {
+    timerInterval = setInterval(() => {
+      const currentDate = new Date();
+      const deltaTime = userSelectedDate - currentDate;
+      displayTimeLeft(deltaTime);
+      if (deltaTime < SECOND) {
+        clearInterval(timerInterval);
+        displayTimeLeft(0);
+      }
+    }, 1000);
+  }
 });
