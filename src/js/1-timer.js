@@ -44,13 +44,14 @@ const options = {
     timeData.selectedDate = selectedDates[0];
     if (timeData.selectedDate > new Date()) {
       refs.btn.disabled = false;
+      displayTimeLeft(timeData.selectedDate - new Date());
+    } else {
+      displayTimeLeft(0);
     }
     if (timeData.interval) {
       clearInterval(timeData.interval);
       timeData.interval = null;
     }
-
-    displayTimeLeft(timeData.selectedDate - new Date());
   },
 };
 
@@ -62,6 +63,7 @@ refs.btn.addEventListener('click', event => {
     timeData.interval = null;
   }
   displayTimeLeft(timeData.selectedDate - new Date());
+
   timeData.interval = setInterval(() => {
     const currentDate = new Date();
     const deltaTime = timeData.selectedDate - currentDate;
