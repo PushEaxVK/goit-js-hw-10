@@ -10,21 +10,29 @@ const refs = {
 };
 
 refs.btn.disabled = true;
+const timeData = {
+  selectedDate: null,
+  interval: null,
+};
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
 const HOUR = MINUTE * 60;
 const DAY = HOUR * 24;
 
+function timeToDispay(num) {
+  return String(num).padStart(2, '0');
+}
+
 function displayTimeLeft(deltaTime) {
   const days = Math.floor(deltaTime / DAY);
   const hours = Math.floor((deltaTime % DAY) / HOUR);
   const minutes = Math.floor((deltaTime % HOUR) / MINUTE);
   const seconds = Math.floor((deltaTime % MINUTE) / SECOND);
-  refs.days.textContent = days;
-  refs.hours.textContent = hours;
-  refs.minutes.textContent = minutes;
-  refs.seconds.textContent = seconds;
+  refs.days.textContent = timeToDispay(days);
+  refs.hours.textContent = timeToDispay(hours);
+  refs.minutes.textContent = timeToDispay(minutes);
+  refs.seconds.textContent = timeToDispay(seconds);
 }
 
 const options = {
@@ -33,17 +41,34 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    console.dir(selectedDates[0]);
-    this.interval = setInterval(() => {
-      const currentDate = new Date();
-      const selectedDate = selectedDates[0];
-      const deltaTime = selectedDate - currentDate;
-      displayTimeLeft(deltaTime);
-      if (deltaTime < SECOND) {
-        clearInterval(this.interval);
-      }
-    }, 1000);
+    timeData.selectedDate = selectedDates[0];
+    if (timeData.selectedDate > new Date()) {
+      refs.btn.disabled = false;
+    }
+    if (timeData.interval) {
+      clearInterval(timeData.interval);
+      timeData.interval = null;
+    }
+
+    displayTimeLeft(timeData.selectedDate - new Date());
   },
 };
 
 flatpickr('input#datetime-picker', options);
+
+refs.btn.addEventListener('click', event => {
+  if (timeData.interval) {
+    clearInterval(timeData.interval);
+    timeData.interval = null;
+  }
+  displayTimeLeft(timeData.selectedDate - new Date());
+  timeData.interval = setInterval(() => {
+    const currentDate = new Date();
+    const deltaTime = timeData.selectedDate - currentDate;
+    displayTimeLeft(deltaTime);
+    if (deltaTime < SECOND) {
+      clearInterval(timeData.interval);
+      displayTimeLeft(0);
+    }
+  }, 1000);
+});
