@@ -52,7 +52,6 @@ const options = {
     userSelectedDate = selectedDates[0];
     if (!checkTimer()) {
       iziToast.warning({
-        title: 'Caution',
         message: 'Please choose a date in the future',
       });
     }
@@ -69,7 +68,6 @@ refs.btn.addEventListener('click', event => {
     refs.btn.disabled = true;
     refs.inputDatetime.disabled = true;
     iziToast.info({
-      title: 'Info',
       message: 'Timer is start!',
     });
     timerInterval = setInterval(() => {
@@ -82,7 +80,6 @@ refs.btn.addEventListener('click', event => {
         refs.btn.disabled = false;
         refs.inputDatetime.disabled = false;
         iziToast.success({
-          title: 'OK',
           message: 'End of timer',
         });
       }
