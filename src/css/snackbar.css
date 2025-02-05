@@ -1,0 +1,9 @@
+.form {
+  width: 300px;
+}
+
+.form label:first-child {
+  /* background-color: red; */
+  display: flex;
+  flex-direction: column;
+}
