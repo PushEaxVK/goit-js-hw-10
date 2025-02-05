@@ -1,5 +1,7 @@
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
 const refs = {
   btn: document.querySelector('button[data-start]'),
@@ -7,6 +9,7 @@ const refs = {
   hours: document.querySelector('span[data-hours]'),
   minutes: document.querySelector('span[data-minutes]'),
   seconds: document.querySelector('span[data-seconds]'),
+  inputDatetime: document.querySelector('input#datetime-picker'),
 };
 
 refs.btn.disabled = true;
@@ -14,24 +17,16 @@ refs.btn.disabled = true;
 let userSelectedDate;
 let timerInterval;
 
-const SECOND = 1000;
-const MINUTE = SECOND * 60;
-const HOUR = MINUTE * 60;
-const DAY = HOUR * 24;
-
-function timeToDispay(num) {
-  return String(num).padStart(2, '0');
+function addLeadingZero(value) {
+  return String(value).padStart(2, '0');
 }
 
 function displayTimeLeft(deltaTime) {
-  const days = Math.floor(deltaTime / DAY);
-  const hours = Math.floor((deltaTime % DAY) / HOUR);
-  const minutes = Math.floor((deltaTime % HOUR) / MINUTE);
-  const seconds = Math.floor((deltaTime % MINUTE) / SECOND);
-  refs.days.textContent = timeToDispay(days);
-  refs.hours.textContent = timeToDispay(hours);
-  refs.minutes.textContent = timeToDispay(minutes);
-  refs.seconds.textContent = timeToDispay(seconds);
+  const date = convertMs(deltaTime);
+  refs.days.textContent = addLeadingZero(date.days);
+  refs.hours.textContent = addLeadingZero(date.hours);
+  refs.minutes.textContent = addLeadingZero(date.minutes);
+  refs.seconds.textContent = addLeadingZero(date.seconds);
 }
 
 function intervalClear() {
@@ -55,7 +50,12 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     userSelectedDate = selectedDates[0];
-    checkTimer();
+    if (!checkTimer()) {
+      iziToast.warning({
+        title: 'Caution',
+        message: 'Please choose a date in the future',
+      });
+    }
     intervalClear();
   },
 };
@@ -66,14 +66,45 @@ refs.btn.addEventListener('click', event => {
   intervalClear();
 
   if (checkTimer()) {
+    refs.btn.disabled = true;
+    refs.inputDatetime.disabled = true;
+    iziToast.info({
+      title: 'Info',
+      message: 'Timer is start!',
+    });
     timerInterval = setInterval(() => {
       const currentDate = new Date();
       const deltaTime = userSelectedDate - currentDate;
       displayTimeLeft(deltaTime);
-      if (deltaTime < SECOND) {
+      if (deltaTime < 1000) {
         clearInterval(timerInterval);
         displayTimeLeft(0);
+        refs.btn.disabled = false;
+        refs.inputDatetime.disabled = false;
+        iziToast.success({
+          title: 'OK',
+          message: 'End of timer',
+        });
       }
     }, 1000);
   }
 });
+
+function convertMs(ms) {
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+
+  // Remaining days
+  const days = Math.floor(ms / day);
+  // Remaining hours
+  const hours = Math.floor((ms % day) / hour);
+  // Remaining minutes
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  // Remaining seconds
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+
+  return { days, hours, minutes, seconds };
+}
